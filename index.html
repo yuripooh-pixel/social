@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>중학교 사회 - 헌법상 기본권 학습 & 퀴즈</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts (Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Shake animation for wrong answer */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Pulse glow animation for correct node */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        }
+        .pulse-card {
+            animation: pulse-glow 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl bg-white/20 p-2 rounded-xl text-yellow-300">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </span>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-tight">중학교 사회: 헌법상 기본권 마스터</h1>
+                    <p class="text-xs text-indigo-200">개념 마인드맵 복습 & 폭죽 퀴즈 challenge</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 bg-indigo-700/60 px-3 py-1.5 rounded-lg border border-indigo-500/30">
+                <i class="fa-solid fa-trophy text-amber-300"></i>
+                <span class="text-xs md:text-sm font-medium">최고 점수: <span id="topScore">0</span> / 10</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container: Split Screen -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Section: Interactive Mind Map & Concept Cards (Col-span 6) -->
+        <section class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+            <!-- Section Header -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-sitemap text-indigo-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-800">헌법상 기본권 마인드맵</h2>
+                </div>
+                <span class="text-xs bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-medium border border-indigo-100">
+                    클릭하여 상세내용 확인
+                </span>
+            </div>
+
+            <!-- Mind Map Content Container -->
+            <div class="p-4 flex-1 overflow-y-auto space-y-4 max-h-[calc(100vh-200px)]">
+                
+                <!-- Center Node Banner -->
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-xl text-center shadow-md">
+                    <div class="inline-block bg-white/20 px-3 py-1 rounded-full text-xs font-semibold mb-1">대한민국 헌법</div>
+                    <h3 class="text-xl font-extrabold">국민의 기본적 권리 (기본권)</h3>
+                    <p class="text-xs text-indigo-100 mt-1">인간으로서 누려야 할 당연한 권리로, 헌법에 의해 보장됨</p>
+                </div>
+
+                <!-- Concept Cards Grid -->
+                <div class="space-y-3" id="mindmapCards">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Right Section: Interactive Quiz Area (Col-span 6) -->
+        <section class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between overflow-hidden relative">
+            
+            <!-- Section Header -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-square-poll-vertical text-indigo-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-800">기본권 점검 퀴즈</h2>
+                </div>
+                <!-- Question Progress Indicator -->
+                <div class="text-xs font-bold text-slate-500">
+                    <span id="currentQuestionNum" class="text-indigo-600">1</span> / <span id="totalQuestionNum">10</span> 문항
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 h-2">
+                <div id="quizProgressBar" class="bg-indigo-600 h-2 transition-all duration-300 rounded-r-full" style="width: 10%;"></div>
+            </div>
+
+            <!-- Main Quiz Container -->
+            <div id="quizContainer" class="p-5 md:p-6 flex-1 flex flex-col justify-between space-y-6 overflow-y-auto">
+                
+                <!-- Category Badge & Question Box -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span id="quizCategoryBadge" class="text-xs font-bold px-2.5 py-1 rounded-md bg-blue-100 text-blue-700">
+                            기본권 유형
+                        </span>
+                        <span id="quizTypeBadge" class="text-xs font-semibold text-slate-400">
+                            [객관식]
+                        </span>
+                    </div>
+                    <h3 id="quizQuestionText" class="text-lg md:text-xl font-bold text-slate-800 leading-snug">
+                        질문이 로딩 중입니다...
+                    </h3>
+                </div>
+
+                <!-- Options / Answers Container -->
+                <div id="quizOptionsContainer" class="space-y-2.5 my-4">
+                    <!-- Options buttons rendered dynamically -->
+                </div>
+
+                <!-- Feedback Message Box (Correct/Incorrect) -->
+                <div id="feedbackBox" class="hidden p-4 rounded-xl text-sm border transition-all duration-200">
+                    <div class="flex items-start space-x-3">
+                        <span id="feedbackIcon" class="text-xl mt-0.5"></span>
+                        <div>
+                            <h4 id="feedbackTitle" class="font-bold text-base mb-0.5"></h4>
+                            <p id="feedbackText" class="text-slate-600 text-xs md:text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button Bar -->
+                <div class="pt-2 flex items-center justify-end space-x-3">
+                    <button id="retryBtn" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> 다시 시도
+                    </button>
+                    <button id="nextBtn" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md hover:shadow-indigo-200 transition-all flex items-center gap-2">
+                        다음 문제 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <button id="submitBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md hover:shadow-indigo-200 transition-all flex items-center gap-2">
+                        정답 제출하기 <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Result View Screen (Hidden by Default) -->
+            <div id="quizResultScreen" class="hidden absolute inset-0 bg-white z-20 p-6 flex flex-col items-center justify-center text-center space-y-6">
+                <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-4xl text-indigo-600 mb-2 shadow-inner border border-indigo-100">
+                    <i id="resultIcon" class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">학습 평가 완료</span>
+                    <h3 class="text-2xl font-black text-slate-800 mt-2">수고하셨습니다!</h3>
+                    <p id="resultMessage" class="text-sm text-slate-600 mt-1">모든 기본권 퀴즈를 완성하였습니다.</p>
+                </div>
+
+                <!-- Score Board Card -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 w-full max-w-sm grid grid-cols-2 gap-4">
+                    <div class="border-r border-slate-200">
+                        <span class="text-xs text-slate-400 block font-medium">최종 점수</span>
+                        <span class="text-2xl font-black text-indigo-600"><span id="finalScore">0</span> / 100점</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">정답 개수</span>
+                        <span class="text-2xl font-black text-emerald-600"><span id="correctCount">0</span> / 10문항</span>
+                    </div>
+                </div>
+
+                <button id="restartQuizBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> 퀴즈 다시 도전하기
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-200 border-t border-slate-300 py-3 text-center text-xs text-slate-500">
+        중학교 사회 ① 헌법과 기본권 파트 학습용 웹 애플리케이션
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        /* -------------------------------------------------------------
+         * 1. Mind Map Concept Data
+         * ------------------------------------------------------------- */
+        const mindmapData = [
+            {
+                id: 'equality',
+                title: '평등권',
+                tag: '기본권 보장의 전제',
+                badgeBg: 'bg-blue-100 text-blue-700 border-blue-200',
+                borderLeft: 'border-l-blue-500',
+                icon: 'fa-scale-balanced text-blue-500',
+                summary: '성별, 종교, 사회적 신분 등에 의해 부당하게 차별받지 않을 권리',
+                details: {
+                    nature: '다른 모든 기본권을 누릴 수 있도록 보장하는 가장 근본적인 전제',
+                    examples: [
+                        '법 앞의 평등 (모든 국민은 법 적용 시 평등함)',
+                        '교육의 기회균등 (누구나 평등하게 교육받을 권리)',
+                        '남녀평등, 고용 및 사회적 차별 금지'
+                    ],
+                    tip: '단순히 똑같이 나누는 형식적 평등이 아닌, 개인의 차이를 고려하는 실질적 평등을 지향함'
+                }
+            },
+            {
+                id: 'liberty',
+                title: '자유권',
+                tag: '소극적·방어적 권리',
+                badgeBg: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                borderLeft: 'border-l-emerald-500',
+                icon: 'fa-dove text-emerald-500',
+                summary: '국가 권력의 간섭이나 침해를 받지 않고 자유롭게 생활할 권리',
+                details: {
+                    nature: '역사적으로 가장 오래된 기본권이며, 국가에 대해 간섭하지 말 것을 요구함',
+                    examples: [
+                        '신체의 자유 (체포·구속 시 법률 절차 준수, 고문 금지)',
+                        '정신적 자유 (양심, 종교, 언론·출판, 집회·결사의 자유)',
+                        '사회·경제적 자유 (거주·이전의 자유, 직업 선택의 자유, 재산권 행사)'
+                    ],
+                    tip: '타인의 자유와 권리를 침해하지 않는 범위 내에서 허용됨'
+                }
+            },
+            {
+                id: 'participation',
+                title: '참정권',
+                tag: '능동적 권리 (국민주권)',
+                badgeBg: 'bg-purple-100 text-purple-700 border-purple-200',
+                borderLeft: 'border-l-purple-500',
+                icon: 'fa-check-to-slot text-purple-500',
+                summary: '국민이 국가의 의사 결정 및 정치 과정에 참여할 수 있는 권리',
+                details: {
+                    nature: '국민주권주의를 실현하기 위한 주체적이고 능동적인 권리',
+                    examples: [
+                        '선거권 (대표자를 선출할 수 있는 권리 - 만 18세 이상)',
+                        '공무담임권 (공무원이 되어 나랏일을 담당할 수 있는 권리)',
+                        '국민투표권 (헌법 개정 등 국가 중요 정책에 직접 투표할 권리)'
+                    ],
+                    tip: '민주주의를 유지하고 발전시키는 데 핵심적인 권리'
+                }
+            },
+            {
+                id: 'claim',
+                title: '청구권',
+                tag: '수단적·절차적 권리',
+                badgeBg: 'bg-amber-100 text-amber-700 border-amber-200',
+                borderLeft: 'border-l-amber-500',
+                icon: 'fa-hand-holding-hand text-amber-500',
+                summary: '기본권이 침해되었을 때 이를 구제해 달라고 국가에 요구하는 권리',
+                details: {
+                    nature: '다른 기본권을 실질적으로 보장하기 위한 수단이자 구제 절차적 권리',
+                    examples: [
+                        '청원권 (국가 기관에 의견이나 요망 사항을 제출하는 권리)',
+                        '재판청구권 (공정한 법관에 의해 재판을 받을 권리)',
+                        '국가배상 청구권 (공무원의 불법 행위로 입은 손해 배상을 요구)'
+                    ],
+                    tip: '기본권이 억울하게 침해당했을 때 보호막 역할을 수행함'
+                }
+            },
+            {
+                id: 'social',
+                title: '사회권',
+                tag: '적극적·현대적 권리',
+                badgeBg: 'bg-rose-100 text-rose-700 border-rose-200',
+                borderLeft: 'border-l-rose-500',
+                icon: 'fa-heart-pulse text-rose-500',
+                summary: '국가에 대하여 인간다운 생활의 보장을 요구할 수 있는 권리',
+                details: {
+                    nature: '20세기 이후 현대 복지 국가에서 강조된 가장 최신의 적극적 권리',
+                    examples: [
+                        '인간다운 생활을 할 권리 (최저 생계 보장 등)',
+                        '교육을 받을 권리 & 근로의 권리',
+                        '노동 3권 (단결권, 단체교섭권, 단체행동권)',
+                        '쾌적한 환경에서 생활할 환경권'
+                    ],
+                    tip: '빈부격차 등 현대 사회 문제를 해결하기 위해 국가의 적극적 개입 촉구'
+                }
+            },
+            {
+                id: 'limitation',
+                title: '기본권 제한과 한계',
+                tag: '헌법 제37조 제2항',
+                badgeBg: 'bg-slate-200 text-slate-800 border-slate-300',
+                borderLeft: 'border-l-slate-600',
+                icon: 'fa-shield-halved text-slate-700',
+                summary: '공공의 이익을 위해 제한할 수 있으나 본질적 내용은 침해 불가',
+                details: {
+                    nature: '기본권은 무제한 누리는 절대적 권리가 아니며 질서 유지를 위해 제한 가능함',
+                    examples: [
+                        '제한 목적: ① 국가안전보장 ② 질서유지 ③ 공공복리',
+                        '제한 형식: 반드시 국회가 제정한 [법률]로서만 제한 가능',
+                        '제한 한계: 자유와 권리의 [본질적인 내용]은 침해할 수 없음'
+                    ],
+                    tip: '시험 단골 출제 포인트! "법률로써 제한하되 본질적 내용 침해 불가"'
+                }
+            }
+        ];
+
+        /* -------------------------------------------------------------
+         * 2. Quiz Questions Data (10 Questions)
+         * ------------------------------------------------------------- */
+        const quizData = [
+            {
+                id: 1,
+                category: '평등권',
+                type: 'multiple',
+                question: '다음 중 헌법상 기본권인 \'평등권\'에 대한 설명으로 가장 올바른 것은?',
+                options: [
+                    '국가 권력으로부터 간섭을 받지 않을 소극적인 권리이다.',
+                    '성별, 종교, 사회적 신분 등에 의해 부당한 차별을 받지 않을 권리이다.',
+                    '국가에 대하여 인간다운 생활을 보장해 달라고 요구하는 적극적 권리이다.',
+                    '다른 기본권이 침해되었을 때 이를 구제해 달라고 청구하는 수단적 권리이다.'
+                ],
+                answer: 1, // 0-indexed
+                hint: '평등권은 차별받지 않고 다 같이 공평하게 대우받을 권리입니다.'
+            },
+            {
+                id: 2,
+                category: '자유권',
+                type: 'multiple',
+                question: '다음 보기 중 기본권의 성격이 \'자유권\'에 해당하는 사례만 고른 것은?',
+                options: [
+                    '선거권, 공무담임권',
+                    '신체의 자유, 거주·이전의 자유, 언론·출판의 자유',
+                    '재판청구권, 청원권',
+                    '교육을 받을 권리, 환경권'
+                ],
+                answer: 1,
+                hint: '자유권은 국가가 개인의 자유 행동에 개입하지 못하게 하는 방어적 권리입니다.'
+            },
+            {
+                id: 3,
+                category: '참정권',
+                type: 'multiple',
+                question: '국민이 나랏일에 직접 또는 간접적으로 참여할 수 있는 기본권을 무엇이라고 하는가?',
+                options: [
+                    '자유권',
+                    '사회권',
+                    '참정권',
+                    '청구권'
+                ],
+                answer: 2,
+                hint: '선거에서 투표를 하거나 공무원이 되는 권리가 대표적입니다.'
+            },
+            {
+                id: 4,
+                category: '사회권',
+                type: 'multiple',
+                question: '다음 중 현대 복지 국가에서 강조되며, 국민이 국가에 대해 \'인간다운 생활\'을 보장하도록 요구하는 적극적 권리는?',
+                options: [
+                    '사회권',
+                    '평등권',
+                    '자유권',
+                    '청구권'
+                ],
+                answer: 0,
+                hint: '교육을 받을 권리, 근로의 권리, 환경권 등이 포함되는 가장 현대적인 권리입니다.'
+            },
+            {
+                id: 5,
+                category: '청구권',
+                type: 'multiple',
+                question: '국가 기관의 불법 행위로 피해를 입었을 때 손해 배상을 요구하거나, 공정한 재판을 요청할 수 있는 수단적 기본권은?',
+                options: [
+                    '참정권',
+                    '자유권',
+                    '청구권',
+                    '사회권'
+                ],
+                answer: 2,
+                hint: '다른 기본권이 억울하게 침해당했을 때 구제받기 위한 수단이 됩니다.'
+            },
+            {
+                id: 6,
+                category: '기본권 제한',
+                type: 'multiple',
+                question: '대한민국 헌법 제37조 제2항에 명시된 국민의 기본권을 제한할 수 있는 3가지 정당한 목적이 아닌 것은?',
+                options: [
+                    '국가안전보장',
+                    '질서유지',
+                    '공공복리',
+                    '행정 편의성'
+                ],
+                answer: 3,
+                hint: '헌법에는 국가안전보장, 질서유지, 공공복리를 위해서만 제한이 가능하다고 나와 있습니다.'
+            },
+            {
+                id: 7,
+                category: '기본권 제한',
+                type: 'ox',
+                question: '[O/X 퀴즈] 국가가 국민의 기본권을 제한할 때는 반드시 국회가 제정한 \'법률\'에 의해서만 제한할 수 있다.',
+                options: ['O (맞다)', 'X (틀리다)'],
+                answer: 0,
+                hint: '기본권을 제한할 때는 남용을 막기 위해 법률의 형식으로만 가능합니다.'
+            },
+            {
+                id: 8,
+                category: '기본권 제한',
+                type: 'ox',
+                question: '[O/X 퀴즈] 국가안전보장을 위해서라면 국민 기본권의 \'본질적인 내용\'까지도 완전히 침해하거나 박탈할 수 있다.',
+                options: ['O (맞다)', 'X (틀리다)'],
+                answer: 1,
+                hint: '기본권을 제한하는 경우에도 자유와 권리의 본질적인 내용은 침해할 수 없습니다.'
+            },
+            {
+                id: 9,
+                category: '자유권',
+                type: 'ox',
+                question: '[O/X 퀴즈] 자유권은 기본권 역사상 가장 오래된 권리이며, 국가의 적극적인 개입과 지원을 필수 조건으로 요구한다.',
+                options: ['O (맞다)', 'X (틀리다)'],
+                answer: 1,
+                hint: '자유권은 국가의 개입을 방어하는 소극적 권리이며, 적극적 개입을 요구하는 것은 사회권입니다.'
+            },
+            {
+                id: 10,
+                category: '참정권',
+                type: 'multiple',
+                question: '다음 중 국민이 공무원으로 임용되어 국가 기관의 사무를 담당할 수 있는 권리의 명칭은?',
+                options: [
+                    '선거권',
+                    '공무담임권',
+                    '국민투표권',
+                    '재판청구권'
+                ],
+                answer: 1,
+                hint: '공무를 담임(맡아서 함)할 수 있는 참정권의 한 종류입니다.'
+            }
+        ];
+
+        /* -------------------------------------------------------------
+         * 3. Global State Variables
+         * ------------------------------------------------------------- */
+        let currentQuestionIndex = 0;
+        let selectedOption = null;
+        let score = 0;
+        let correctAnswersCount = 0;
+        let topScore = localStorage.getItem('basicRightsTopScore') || 0;
+
+        /* -------------------------------------------------------------
+         * 4. DOM Elements
+         * ------------------------------------------------------------- */
+        const mindmapCardsContainer = document.getElementById('mindmapCards');
+        const currentQuestionNumEl = document.getElementById('currentQuestionNum');
+        const totalQuestionNumEl = document.getElementById('totalQuestionNum');
+        const quizProgressBar = document.getElementById('quizProgressBar');
+        const quizCategoryBadge = document.getElementById('quizCategoryBadge');
+        const quizTypeBadge = document.getElementById('quizTypeBadge');
+        const quizQuestionText = document.getElementById('quizQuestionText');
+        const quizOptionsContainer = document.getElementById('quizOptionsContainer');
+        const feedbackBox = document.getElementById('feedbackBox');
+        const feedbackIcon = document.getElementById('feedbackIcon');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackText = document.getElementById('feedbackText');
+        const submitBtn = document.getElementById('submitBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const topScoreEl = document.getElementById('topScore');
+
+        const quizResultScreen = document.getElementById('quizResultScreen');
+        const finalScoreEl = document.getElementById('finalScore');
+        const correctCountEl = document.getElementById('correctCount');
+        const resultMessage = document.getElementById('resultMessage');
+        const restartQuizBtn = document.getElementById('restartQuizBtn');
+
+        /* -------------------------------------------------------------
+         * 5. MindMap Rendering Logic
+         * ------------------------------------------------------------- */
+        function renderMindmap() {
+            mindmapCardsContainer.innerHTML = '';
+            topScoreEl.textContent = topScore;
+            
+            mindmapData.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = `bg-white border border-slate-200 ${item.borderLeft} border-l-4 rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer`;
+                card.id = `card-${item.id}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between" onclick="toggleCardDetails('${item.id}')">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl">
+                                <i class="fa-solid ${item.icon}"></i>
+                            </span>
+                            <div>
+                                <h4 class="font-bold text-slate-800">${item.title}</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">${item.summary}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded border ${item.badgeBg}">
+                                ${item.tag}
+                            </span>
+                            <i id="chevron-${item.id}" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Details Area -->
+                    <div id="details-${item.id}" class="hidden mt-3 pt-3 border-t border-slate-100 text-xs space-y-2 text-slate-600">
+                        <div>
+                            <strong class="text-indigo-600 font-semibold block mb-0.5">📌 권리의 성격</strong>
+                            <p>${item.details.nature}</p>
+                        </div>
+                        <div>
+                            <strong class="text-indigo-600 font-semibold block mb-0.5">💡 주요 사례 및 예시</strong>
+                            <ul class="list-disc list-inside space-y-1 pl-1">
+                                ${item.details.examples.map(ex => `<li>${ex}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="bg-amber-50 p-2 rounded border border-amber-100 text-amber-800">
+                            <strong>✏️ 꿀팁:</strong> ${item.details.tip}
+                        </div>
+                    </div>
+                `;
+
+                mindmapCardsContainer.appendChild(card);
+            });
+        }
+
+        function toggleCardDetails(id) {
+            const detailsEl = document.getElementById(`details-${id}`);
+            const chevronEl = document.getElementById(`chevron-${id}`);
+            
+            if (detailsEl.classList.contains('hidden')) {
+                detailsEl.classList.remove('hidden');
+                chevronEl.classList.add('rotate-180');
+            } else {
+                detailsEl.classList.add('hidden');
+                chevronEl.classList.remove('rotate-180');
+            }
+        }
+
+        // Highlight Mindmap Card matching current quiz category
+        function highlightMindmapCard(categoryName) {
+            // Reset all card highlights
+            mindmapData.forEach(item => {
+                const card = document.getElementById(`card-${item.id}`);
+                if (card) {
+                    card.classList.remove('pulse-card', 'ring-2', 'ring-indigo-400');
+                }
+            });
+
+            // Find matching item
+            const matched = mindmapData.find(item => item.title.includes(categoryName) || categoryName.includes(item.title));
+            if (matched) {
+                const card = document.getElementById(`card-${matched.id}`);
+                if (card) {
+                    card.classList.add('pulse-card', 'ring-2', 'ring-indigo-400');
+                }
+            }
+        }
+
+        /* -------------------------------------------------------------
+         * 6. Quiz Logic
+         * ------------------------------------------------------------- */
+        function loadQuestion(index) {
+            const data = quizData[index];
+            selectedOption = null;
+
+            // Reset UI States
+            feedbackBox.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            retryBtn.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Set Header information
+            currentQuestionNumEl.textContent = index + 1;
+            totalQuestionNumEl.textContent = quizData.length;
+            const progressPercent = ((index + 1) / quizData.length) * 100;
+            quizProgressBar.style.width = `${progressPercent}%`;
+
+            quizCategoryBadge.textContent = data.category;
+            quizTypeBadge.textContent = data.type === 'ox' ? '[O/X 퀴즈]' : '[객관식]';
+            quizQuestionText.textContent = data.question;
+
+            // Highlight mindmap card on the left
+            highlightMindmapCard(data.category);
+
+            // Render Option Buttons
+            quizOptionsContainer.innerHTML = '';
+            data.options.forEach((optText, optIdx) => {
+                const optBtn = document.createElement('button');
+                optBtn.className = `w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 transition-all font-medium text-sm flex items-center justify-between group`;
+                optBtn.onclick = () => selectOption(optIdx, optBtn);
+
+                optBtn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 flex items-center justify-center text-xs font-bold text-slate-500 transition-colors">
+                            ${optIdx + 1}
+                        </span>
+                        <span class="text-slate-700">${optText}</span>
+                    </div>
+                    <i class="fa-regular fa-circle text-slate-300 opt-check-icon"></i>
+                `;
+                quizOptionsContainer.appendChild(optBtn);
+            });
+        }
+
+        function selectOption(optIndex, btnElement) {
+            selectedOption = optIndex;
+
+            // Update styling for all option buttons
+            const buttons = quizOptionsContainer.querySelectorAll('button');
+            buttons.forEach((btn, idx) => {
+                const icon = btn.querySelector('.opt-check-icon');
+                if (idx === optIndex) {
+                    btn.className = `w-full text-left p-3.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/50 transition-all font-semibold text-sm flex items-center justify-between`;
+                    icon.className = `fa-solid fa-circle-check text-indigo-600 text-lg`;
+                } else {
+                    btn.className = `w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 transition-all font-medium text-sm flex items-center justify-between group`;
+                    icon.className = `fa-regular fa-circle text-slate-300`;
+                }
+            });
+
+            // Enable submit button
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function submitAnswer() {
+            if (selectedOption === null) return;
+
+            const data = quizData[currentQuestionIndex];
+            const isCorrect = (selectedOption === data.answer);
+            const buttons = quizOptionsContainer.querySelectorAll('button');
+
+            // Disable option buttons after submission
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                // Correct Answer Logic
+                score += 10;
+                correctAnswersCount++;
+                
+                // Styling correct option
+                buttons[selectedOption].className = `w-full text-left p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 font-bold text-sm flex items-center justify-between text-emerald-900`;
+                
+                // Feedback Box Show
+                feedbackBox.className = `p-4 rounded-xl text-sm border bg-emerald-50 border-emerald-200 text-emerald-800 block`;
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i>`;
+                feedbackTitle.textContent = "정답입니다! 👏";
+                feedbackText.textContent = "완벽하게 기본권 개념을 파악하셨네요!";
+
+                // Fire Confetti Animation!
+                triggerConfetti();
+
+                // Buttons Switch
+                submitBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+
+            } else {
+                // Incorrect Answer Logic
+                // Shake Question Box
+                const quizBox = document.getElementById('quizContainer');
+                quizBox.classList.add('animate-shake');
+                setTimeout(() => quizBox.classList.remove('animate-shake'), 400);
+
+                // Styling incorrect option
+                buttons[selectedOption].className = `w-full text-left p-3.5 rounded-xl border-2 border-rose-400 bg-rose-50 font-bold text-sm flex items-center justify-between text-rose-900`;
+
+                // Feedback Box Show (With Hint)
+                feedbackBox.className = `p-4 rounded-xl text-sm border bg-rose-50 border-rose-200 text-rose-800 block`;
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500"></i>`;
+                feedbackTitle.textContent = "아쉽네요, 틀렸습니다!";
+                feedbackText.textContent = `💡 힌트: ${data.hint}`;
+
+                // Buttons Switch
+                submitBtn.classList.add('hidden');
+                retryBtn.classList.remove('hidden');
+            }
+        }
+
+        // Retry current question
+        function retryCurrentQuestion() {
+            loadQuestion(currentQuestionIndex);
+        }
+
+        // Go to Next Question or Finish
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        /* -------------------------------------------------------------
+         * 7. Confetti Fireworks Animation
+         * ------------------------------------------------------------- */
+        function triggerConfetti() {
+            // Fire multiple bursts of confetti
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // Second delayed burst for extra delight
+            setTimeout(() => {
+                confetti({
+                    particleCount: 40,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 40,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+            }, 150);
+        }
+
+        /* -------------------------------------------------------------
+         * 8. Finish Quiz & Results Screen
+         * ------------------------------------------------------------- */
+        function finishQuiz() {
+            quizResultScreen.classList.remove('hidden');
+            finalScoreEl.textContent = score;
+            correctCountEl.textContent = correctAnswersCount;
+
+            // Update Top Score
+            if (score > topScore) {
+                topScore = score;
+                localStorage.setItem('basicRightsTopScore', topScore);
+                topScoreEl.textContent = topScore;
+            }
+
+            // Message based on score
+            if (score === 100) {
+                resultMessage.textContent = "🎉 만점입니다! 헌법상 기본권에 대한 완벽한 이해를 갖추셨어요!";
+                triggerConfetti();
+            } else if (score >= 70) {
+                resultMessage.textContent = "👍 훌륭합니다! 조금만 더 공부하면 만점에 도전할 수 있습니다.";
+            } else {
+                resultMessage.textContent = "📘 좌측 마인드맵 개념을 한 번 더 복습하고 재도전해 보세요!";
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswersCount = 0;
+            quizResultScreen.classList.add('hidden');
+            loadQuestion(0);
+        }
+
+        /* -------------------------------------------------------------
+         * 9. Initialization & Event Listeners
+         * ------------------------------------------------------------- */
+        window.onload = function() {
+            renderMindmap();
+            loadQuestion(0);
+
+            // Bind Action Buttons
+            submitBtn.addEventListener('click', submitAnswer);
+            retryBtn.addEventListener('click', retryCurrentQuestion);
+            nextBtn.addEventListener('click', nextQuestion);
+            restartQuizBtn.addEventListener('click', restartQuiz);
+        };
+    </script>
+</body>
+</html>
